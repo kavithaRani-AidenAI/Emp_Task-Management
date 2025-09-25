@@ -1,0 +1,410 @@
+/* Base */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  background: #eef3f9;
+  color: #333;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header */
+.header-right {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.user-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #007bff, #00bcd4);
+  color: white;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Main two-column layout */
+.main-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.left-col {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.right-col {
+  flex: 1;
+}
+
+/* Card style */
+.card {
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+/* Profile row */
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-photo {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #007bff;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-info p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #444;
+}
+
+.profile-info strong {
+  color: #222;
+}
+
+/* Date & Time */
+.date-time-row {
+  display: flex;
+  gap: 15px;
+}
+
+.date-box, .time-box {
+  flex: 1;
+  padding: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+  text-align: center;
+  font-weight: bold;
+  color: #007bff;
+}
+
+/* Calendar */
+.small-calendar {
+  width: 100%;
+}
+
+.calendar-box {
+  padding: 10px;
+  width: 250px;
+  margin: auto;
+}
+
+.calendar-title {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 8px;
+  color: #007bff;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-day {
+  background: #f7f9fc;
+  padding: 6px;
+  font-size: 12px;
+  text-align: center;
+  border-radius: 4px;
+  transition: background 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
+.calendar-day.today {
+  background: #007bff;
+  color: white;
+  font-weight: bold;
+  transform: scale(1.05);
+}
+
+.calendar-day:hover {
+  background: #dceeff;
+}
+
+/* Dropdowns */
+.dropdowns {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.dropdowns select {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: white;
+  font-size: 14px;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dropdowns select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+  outline: none;
+}
+
+/* Task Input */
+.task-box {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.task-box input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.task-box input:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+}
+
+.task-box button {
+  padding: 10px 16px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s, box-shadow 0.3s, transform 0.2s;
+}
+
+.task-box button:hover {
+  background: linear-gradient(135deg, #0056b3, #003f8a);
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Table */
+.table-box {
+  overflow-x: auto;
+}
+
+.table-box table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table-box th, .table-box td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+.table-box th {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 13px;
+}
+
+.table-box td {
+  font-size: 13px;
+  color: #444;
+}
+
+.table-box tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+.table-box tr:hover {
+  background: #dceeff;
+  transition: 0.2s ease;
+}
+
+p {
+  text-align: left;
+}
+/* Existing CSS from your dashboard remains intact */
+
+/* Calendar completed tasks */
+.calendar-day.completed {
+  background: #28a745; /* green */
+  color: #fff;
+  font-weight: bold;
+  transform: scale(1.05);
+}
+.calendar-day.completed {
+  background: #28a745; /* green */
+  color: #fff;
+  font-weight: bold;
+  transform: scale(1.05);
+}
+
+.calendar-day.holiday {
+  background: #ff9800; /* orange */
+  color: #fff;
+  font-weight: bold;
+}
+
+.calendar-day.pending {
+  background: #f44336; /* red */
+  color: #fff;
+  font-weight: bold;
+}
+
+.calendar-day.today {
+  border: 2px solid #007bff;
+  transform: scale(1.1);
+  transition: all 0.2s ease;
+}
+.calendar-day.future {
+  background: #f0f0f0; /* light grey */
+  color: #888;
+}
+/* Popup Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; 
+  left: 0;
+  width: 100%; 
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-content {
+  background: #ffffff;
+  padding: 25px 20px;
+  border-radius: 12px;
+  width: 380px;
+  max-width: 90%;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+  animation: slideDown 0.35s ease;
+}
+
+/* Modal Title */
+.modal-content h3 {
+  margin-bottom: 15px;
+  color: #d32f2f;
+  font-size: 18px;
+}
+
+/* Checkbox label */
+.modal-content label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+/* Close (X) Button */
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #888;
+  transition: color 0.2s;
+  background-color:rgb(136, 127, 127);
+}
+
+.modal-close:hover {
+  color: #d32f2f;
+}
+
+/* Modal Actions */
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.modal-actions button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-actions .delete-btn {
+  background: #d32f2f;
+  color: white;
+}
+
+.modal-actions .delete-btn:disabled {
+  background: #f8bcbc;
+  cursor: not-allowed;
+}
+
+.modal-actions .cancel-btn {
+  background: #9e9e9e;
+  color: white;
+}
+
+.modal-actions button:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

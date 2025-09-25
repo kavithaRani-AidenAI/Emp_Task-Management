@@ -1,0 +1,351 @@
+import "../App.css";
+import "./EmployeeDashboard.css";
+import React from "react";
+
+function EmployeeDashboard() {
+  const API_BASE = "http://localhost:5000";
+
+  // Live Date & Time
+  const [currentTime, setCurrentTime] = React.useState(new Date());
+  React.useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const dateString = currentTime.toLocaleDateString();
+  const timeString = currentTime.toLocaleTimeString();
+
+  // Dropdown states
+  const [project, setProject] = React.useState("");
+  const [module, setModule] = React.useState("");
+  const [submodule, setSubmodule] = React.useState("");
+
+  const projects = ["APCMMS", "Project 2", "Project 3"];
+  const modules = ["Module 1", "Module 2", "Module 3"];
+  const submodules = ["Submodule A", "Submodule B", "Submodule C"];
+
+  // Task states
+  const [task, setTask] = React.useState("");
+  const [tasks, setTasks] = React.useState([]);
+  const [completedDates, setCompletedDates] = React.useState([]);
+
+  // Delete Confirmation Popup
+  const [showPopup, setShowPopup] = React.useState(false);
+  const [taskToDelete, setTaskToDelete] = React.useState(null);
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
+
+  // Success Popup
+  const [showSuccessPopup, setShowSuccessPopup] = React.useState(false);
+  const [successMessage, setSuccessMessage] = React.useState("");
+  const [successColor, setSuccessColor] = React.useState("green");
+
+  // Define holidays
+  const holidays = [
+    new Date(currentTime.getFullYear(), currentTime.getMonth(), 5).toLocaleDateString(),
+    new Date(currentTime.getFullYear(), currentTime.getMonth(), 15).toLocaleDateString(),
+    new Date(currentTime.getFullYear(), currentTime.getMonth(), 25).toLocaleDateString(),
+  ];
+
+  // Load tasks from backend
+  React.useEffect(() => {
+    const loadTasks = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/tasks`);
+        const data = await res.json();
+        setTasks(data);
+
+        const dates = data.map((t) => t.date);
+        setCompletedDates([...new Set(dates)]);
+      } catch (err) {
+        console.error("Failed to load tasks:", err);
+      }
+    };
+    loadTasks();
+  }, []);
+
+  // Submit new task
+  const handleSubmit = async () => {
+    if (!task) return;
+
+    const newTask = {
+      date: dateString,
+      time: timeString,
+      project: project || "--",
+      module: module || "--",
+      submodule: submodule || "--",
+      details: task,
+      status: "Pending",
+    };
+
+    try {
+      const res = await fetch(`${API_BASE}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTask),
+      });
+      if (!res.ok) throw new Error("Failed to save");
+      const savedTask = await res.json();
+      setTasks((prev) => [...prev, savedTask]);
+      setTask("");
+
+      if (!completedDates.includes(dateString)) {
+        setCompletedDates([...completedDates, dateString]);
+      }
+
+      setSuccessMessage("Task submitted successfully!");
+      setSuccessColor("green");
+      setShowSuccessPopup(true);
+      setTimeout(() => setShowSuccessPopup(false), 2000);
+    } catch (err) {
+      console.error(err);
+      alert("Error saving task: " + err.message);
+    }
+  };
+
+  // Toggle task status
+  const toggleStatus = async (taskItem) => {
+    const newStatus = taskItem.status === "Pending" ? "Done" : "Pending";
+    try {
+      const res = await fetch(`${API_BASE}/tasks/${taskItem.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const updated = await res.json();
+      setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+
+      if (newStatus === "Done" && !completedDates.includes(taskItem.date)) {
+        setCompletedDates([...completedDates, taskItem.date]);
+      }
+      if (newStatus === "Pending" && completedDates.includes(taskItem.date)) {
+        setCompletedDates(completedDates.filter((d) => d !== taskItem.date));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Delete task
+  const deleteTask = async (id) => {
+    try {
+      const taskToDelete = tasks.find((t) => t.id === id);
+      await fetch(`${API_BASE}/tasks/${id}`, { method: "DELETE" });
+      setTasks((prev) => prev.filter((t) => t.id !== id));
+
+      const remainingTasksOnDate = tasks.filter(
+        (t) => t.date === taskToDelete.date && t.id !== id && t.status === "Done"
+      );
+      if (remainingTasksOnDate.length === 0) {
+        setCompletedDates(completedDates.filter((d) => d !== taskToDelete.date));
+      }
+
+      setSuccessMessage("Task deleted successfully!");
+      setSuccessColor("red");
+      setShowSuccessPopup(true);
+      setTimeout(() => setShowSuccessPopup(false), 2000);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  return (
+    <div className="container">
+      {/* Header */}
+      <div className="header-right">
+        <div className="user-circle">C</div>
+      </div>
+
+      {/* Profile + Calendar */}
+      <div className="main-row">
+        <div className="left-col">
+          <div className="card profile-row">
+            <img src="/tim.jpeg" alt="Profile" className="profile-photo" />
+            <div className="profile-info">
+              <p><strong>Name:</strong> XYZ</p>
+              <p><strong>Designation:</strong> Developer</p>
+              <p><strong>Date Of Joining:</strong> 01-08-2025</p>
+              <p><strong>Project:</strong> APCMMS</p>
+            </div>
+          </div>
+
+          <div className="date-time-row">
+            <div className="date-box card">
+              <p><strong>Date:</strong> {dateString}</p>
+            </div>
+            <div className="time-box card">
+              <p><strong>Time:</strong> {timeString}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="right-col">
+          <div className="card calendar-box small-calendar">
+            <p className="calendar-title">Calendar</p>
+            <div className="calendar-grid">
+              {[...Array(30).keys()].map((d) => {
+                const dayNumber = d + 1;
+                const dateOfDay = new Date(
+                  currentTime.getFullYear(),
+                  currentTime.getMonth(),
+                  dayNumber
+                );
+                const dateStr = dateOfDay.toLocaleDateString();
+
+                const isToday = dayNumber === currentTime.getDate();
+                const isCompleted = completedDates.includes(dateStr);
+                const isHoliday = holidays.includes(dateStr);
+                const isFuture = dateOfDay > currentTime;
+
+                let className = "calendar-day";
+                if (isFuture) className += " future";
+                else if (isCompleted) className += " completed";
+                else if (isHoliday) className += " holiday";
+                else className += " pending";
+
+                if (isToday) className += " today";
+
+                return (
+                  <div key={d} className={className}>
+                    {dayNumber}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Dropdowns */}
+      <div className="dropdowns">
+        <select value={project} onChange={(e) => setProject(e.target.value)}>
+          <option value="">--Select Project--</option>
+          {projects.map((p) => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
+
+        <select value={module} onChange={(e) => setModule(e.target.value)}>
+          <option value="">--Select Module--</option>
+          {modules.map((m) => (
+            <option key={m} value={m}>{m}</option>
+          ))}
+        </select>
+
+        <select value={submodule} onChange={(e) => setSubmodule(e.target.value)}>
+          <option value="">--Select Submodule--</option>
+          {submodules.map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Task Input */}
+      <div className="task-box">
+        <input
+          type="text"
+          placeholder="Enter Task Details"
+          value={task}
+          onChange={(e) => setTask(e.target.value)}
+        />
+        <button onClick={handleSubmit}>Submit</button>
+      </div>
+
+      {/* Task Table */}
+      <div className="table-box">
+        <table>
+          <thead>
+            <tr>
+              <th>S.No</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Project</th>
+              <th>Module</th>
+              <th>Submodule</th>
+              <th>Activity Details</th>
+              <th>Status / Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tasks.length === 0 ? (
+              <tr>
+                <td colSpan="8">No tasks submitted yet</td>
+              </tr>
+            ) : (
+              tasks.map((t, i) => (
+                <tr key={t.id}>
+                  <td>{i + 1}</td>
+                  <td>{t.date}</td>
+                  <td>{t.time}</td>
+                  <td>{t.project}</td>
+                  <td>{t.module}</td>
+                  <td>{t.submodule}</td>
+                  <td>{t.details}</td>
+                  <td>
+                    {t.status}
+                    <div style={{ marginTop: "6px" }}>
+                      <button onClick={() => toggleStatus(t)}>Change Status</button>
+                      <button
+                        onClick={() => {
+                          setTaskToDelete(t);
+                          setShowPopup(true);
+                        }}
+                        style={{ marginLeft: "6px" }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Delete Confirmation Popup */}
+      {showPopup && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <span className="modal-close" onClick={() => setShowPopup(false)}>❌</span>
+            <h3 style={{ color: "red" }}>You want to delete this task?</h3>
+            <p><strong>{taskToDelete?.details}</strong></p>
+
+            <label>
+              <input
+                type="checkbox"
+                checked={confirmDelete}
+                onChange={(e) => setConfirmDelete(e.target.checked)}
+              />
+              Yes, I want to delete
+            </label>
+
+            <div className="modal-actions">
+              <button
+                className="delete-btn"
+                disabled={!confirmDelete}
+                onClick={() => {
+                  deleteTask(taskToDelete.id);
+                  setShowPopup(false);
+                  setConfirmDelete(false);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Popup */}
+      {showSuccessPopup && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3 style={{ color: successColor }}>{successMessage}</h3>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default EmployeeDashboard;
