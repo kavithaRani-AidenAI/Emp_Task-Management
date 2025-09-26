@@ -1,6 +1,8 @@
 import AdminLogin from "./Pages/AdminLogin";
+import EmployeeLogin from "./Pages/EmployeeLogin";
 import EmployeeDashboard from "./Pages/EmployeeDashboard";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+
 
 function App() {
   return (
@@ -10,7 +12,9 @@ function App() {
         <Route path="/" element={<AdminLogin />} />
 
         {/* Employee dashboard page */}
-        <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
+        
+        <Route path="/employee-login" element={<EmployeeLogin />} />
+        <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
       </Routes>
     </Router>
   );

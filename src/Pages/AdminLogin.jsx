@@ -28,32 +28,18 @@ export default function AdminLogin(){
   return (
     <>
    <Header currentUser={null} /> 
-    <div className="container">
-      <div id="adminLogin" class="page active">
-        <div className='header'>
-          {/* <h1>Employee Task Management System</h1> */}
-          <h2>Admin Login</h2>
+   
+    
+  
        
-       </div>
-      <form onSubmit={submit}>
-         <div className="login-form">
-        <div className="form-group">
-          <label>Username</label>
-          <input value={username} onChange={e=>setUsername(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label>Password</label>
-          <input value={password} type="password" onChange={e=>setPassword(e.target.value)} />
-        </div >
         <div className='form-group'>
+          <div className='btnform'>
         <button className="btn" type="submit">Login as Admin</button>
         <button className="btn btn-secondary" type="button" onClick={()=>nav('/employee-login')}>Employee Login</button>
         {err && <div style={{color:'red'}}>{err}</div>}
         </div>
         </div>
-      </form>
-    </div>
-    </div>
+      
     <Footer />
     </>
   );

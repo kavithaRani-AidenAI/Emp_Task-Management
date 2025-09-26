@@ -8,6 +8,15 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: lightgrey;
             min-height: 100vh;
+            
+        }
+
+        .btnform{
+            display:flex;
+            justify-content: center;
+            padding-top: 250px;
+           
+
         }
         
         .container {
