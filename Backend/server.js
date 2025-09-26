@@ -6,27 +6,44 @@ const { Pool } = require("pg");
 const app = express();
 const port = 5000;
 
+// Middleware
 app.use(cors());
 app.use(bodyParser.json());
-// Temporary in-memory storage (replace with DB later)
-let employees = [];
-let tasks = [];
-
-// Admin credentials (can be in DB)
-//const admin = { username: "admin", password: "admin123" };
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // PostgreSQL connection pool
 const pool = new Pool({
   connectionString:
     "postgresql://neondb_owner:npg_4sGKRac7jDBY@ep-wandering-salad-adsv8ik7-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
-    })
-// Admin Login
-app.get("/api/admin/login", (req, res) => {
+});
+
+// Temporary in-memory storage (replace with DB later)
+let employees = [];
+let tasks = [];
+
+// Admin Login (POST) - validate against DB
+app.post("/admin/login", async (req, res) => {
   const { username, password } = req.body;
-  if (username === admin.username && password === admin.password) {
-    res.json({ success: true, role: "admin" });
-  } else {
-    res.status(401).json({ success: false, message: "Invalid admin credentials" });
+  if (!username || !password) {
+    return res.status(400).json({ success: false, message: "Username and password are required" });
+  }
+  try {
+    const result = await pool.query(
+      `SELECT id, username, email FROM admins WHERE username = $1 AND password = $2`,
+      [username, password]
+    );
+    if (result.rows.length > 0) {
+      const admin = result.rows[0];
+      return res.json({ success: true, admin: { id: admin.id, username: admin.username, email: admin.email } });
+    }
+    // Temporary fallback if DB has no admin seeded
+    if (username === "admin" && password === "admin123") {
+      return res.json({ success: true, admin: { id: 0, username: "admin", email: "admin@example.com" } });
+    }
+    return res.status(401).json({ success: false, message: "Invalid username or password" });
+  } catch (err) {
+    console.error("Admin login error:", err);
+    return res.status(500).json({ success: false, message: "Server error during login", error: err.message });
   }
 });
 
@@ -35,9 +52,9 @@ app.post("/api/employee/login", (req, res) => {
   const { empId, password } = req.body;
   const employee = employees.find(e => e.id === empId && e.password === password);
   if (employee) {
-    res.json({ success: true, employee });
+    return res.json({ success: true, employee });
   } else {
-    res.status(401).json({ success: false, message: "Invalid employee credentials" });
+    return res.status(401).json({ success: false, message: "Invalid employee credentials" });
   }
 });
 
@@ -98,6 +115,24 @@ app.delete("/api/tasks/:id", (req, res) => {
   res.json({ success: true, message: "Task deleted" });
 });
 
+
+// Admin Stats
+app.get("/stats", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT COUNT(*) as total, COUNT(CASE WHEN status = 'Pending' THEN 1 END) as pending FROM tasks"
+    );
+    const stats = {
+      totalEmployees: employees.length,
+      totalTasks: parseInt(result.rows[0].total || 0, 10),
+      pendingTasks: parseInt(result.rows[0].pending || 0, 10)
+    };
+    res.json(stats);
+  } catch (err) {
+    console.error('Stats error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 pool.connect()
   .then(() => console.log(" Connected to PostgreSQL"))
