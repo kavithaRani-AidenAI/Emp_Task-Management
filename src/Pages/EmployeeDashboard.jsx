@@ -1,69 +1,70 @@
 import "../App.css";
 import "./EmployeeDashboard.css";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import API from "../API"; // assuming you have an axios instance
+import Header from "./Header";
 
 function EmployeeDashboard() {
-  const API_BASE = "http://localhost:5000";
+  const [employee, setEmployee] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [completedDates, setCompletedDates] = useState([]);
+  const [task, setTask] = useState("");
+  const [project, setProject] = useState("");
+  const [module, setModule] = useState("");
+  const [submodule, setSubmodule] = useState("");
 
-  // Live Date & Time
-  const [currentTime, setCurrentTime] = React.useState(new Date());
-  React.useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  const dateString = currentTime.toLocaleDateString();
-  const timeString = currentTime.toLocaleTimeString();
+  const [showPopup, setShowPopup] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
-  // Dropdown states
-  const [project, setProject] = React.useState("");
-  const [module, setModule] = React.useState("");
-  const [submodule, setSubmodule] = React.useState("");
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [successColor, setSuccessColor] = useState("green");
 
   const projects = ["APCMMS", "Project 2", "Project 3"];
   const modules = ["Module 1", "Module 2", "Module 3"];
   const submodules = ["Submodule A", "Submodule B", "Submodule C"];
 
-  // Task states
-  const [task, setTask] = React.useState("");
-  const [tasks, setTasks] = React.useState([]);
-  const [completedDates, setCompletedDates] = React.useState([]);
-
-  // Delete Confirmation Popup
-  const [showPopup, setShowPopup] = React.useState(false);
-  const [taskToDelete, setTaskToDelete] = React.useState(null);
-  const [confirmDelete, setConfirmDelete] = React.useState(false);
-
-  // Success Popup
-  const [showSuccessPopup, setShowSuccessPopup] = React.useState(false);
-  const [successMessage, setSuccessMessage] = React.useState("");
-  const [successColor, setSuccessColor] = React.useState("green");
-
-  // Define holidays
   const holidays = [
     new Date(currentTime.getFullYear(), currentTime.getMonth(), 5).toLocaleDateString(),
     new Date(currentTime.getFullYear(), currentTime.getMonth(), 15).toLocaleDateString(),
     new Date(currentTime.getFullYear(), currentTime.getMonth(), 25).toLocaleDateString(),
   ];
 
-  // Load tasks from backend
-  React.useEffect(() => {
-    const loadTasks = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/tasks`);
-        const data = await res.json();
-        setTasks(data);
-
-        const dates = data.map((t) => t.date);
-        setCompletedDates([...new Set(dates)]);
-      } catch (err) {
-        console.error("Failed to load tasks:", err);
-      }
-    };
-    loadTasks();
+  // Update live time
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
-  // Submit new task
+  // Fetch employee profile + tasks on mount
+  useEffect(() => {
+    const fetchEmployee = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const res = await API.get("/api/employee/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setEmployee(res.data);
+        setTasks(res.data.tasks || []);
+
+        const dates = (res.data.tasks || []).map((t) => t.date);
+        setCompletedDates([...new Set(dates)]);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchEmployee();
+  }, []);
+
+  const dateString = currentTime.toLocaleDateString();
+  const timeString = currentTime.toLocaleTimeString();
+
+  // Submit task for logged-in employee
   const handleSubmit = async () => {
     if (!task) return;
 
@@ -78,14 +79,12 @@ function EmployeeDashboard() {
     };
 
     try {
-      const res = await fetch(`${API_BASE}/tasks`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newTask),
+      const token = localStorage.getItem("token");
+      const res = await API.post("/api/tasks", newTask, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to save");
-      const savedTask = await res.json();
-      setTasks((prev) => [...prev, savedTask]);
+
+      setTasks((prev) => [...prev, res.data]);
       setTask("");
 
       if (!completedDates.includes(dateString)) {
@@ -104,20 +103,19 @@ function EmployeeDashboard() {
 
   // Toggle task status
   const toggleStatus = async (taskItem) => {
-    const newStatus = taskItem.status === "Pending" ? "Done" : "Pending";
     try {
-      const res = await fetch(`${API_BASE}/tasks/${taskItem.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+      const token = localStorage.getItem("token");
+      const newStatus = taskItem.status === "Pending" ? "Done" : "Pending";
+      const res = await API.put(`/api/tasks/${taskItem.id}`, { status: newStatus }, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      const updated = await res.json();
-      setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
 
+      setTasks((prev) => prev.map((t) => (t.id === res.data.id ? res.data : t)));
+
+      // update completedDates
       if (newStatus === "Done" && !completedDates.includes(taskItem.date)) {
         setCompletedDates([...completedDates, taskItem.date]);
-      }
-      if (newStatus === "Pending" && completedDates.includes(taskItem.date)) {
+      } else if (newStatus === "Pending" && completedDates.includes(taskItem.date)) {
         setCompletedDates(completedDates.filter((d) => d !== taskItem.date));
       }
     } catch (err) {
@@ -128,8 +126,11 @@ function EmployeeDashboard() {
   // Delete task
   const deleteTask = async (id) => {
     try {
+      const token = localStorage.getItem("token");
       const taskToDelete = tasks.find((t) => t.id === id);
-      await fetch(`${API_BASE}/tasks/${id}`, { method: "DELETE" });
+      await API.delete(`/api/tasks/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setTasks((prev) => prev.filter((t) => t.id !== id));
 
       const remainingTasksOnDate = tasks.filter(
@@ -148,12 +149,11 @@ function EmployeeDashboard() {
     }
   };
 
+  if (!employee) return <div>Loading employee data...</div>;
+
   return (
     <div className="container">
-      {/* Header */}
-      <div className="header-right">
-        <div className="user-circle">C</div>
-      </div>
+      <Header currentUser={employee} />
 
       {/* Profile + Calendar */}
       <div className="main-row">
@@ -161,10 +161,10 @@ function EmployeeDashboard() {
           <div className="card profile-row">
             <img src="/tim.jpeg" alt="Profile" className="profile-photo" />
             <div className="profile-info">
-              <p><strong>Name:</strong> XYZ</p>
-              <p><strong>Designation:</strong> Developer</p>
-              <p><strong>Date Of Joining:</strong> 01-08-2025</p>
-              <p><strong>Project:</strong> APCMMS</p>
+              <p><strong>Name:</strong> {employee.name}</p>
+              <p><strong>Email:</strong> {employee.email}</p>
+              <p><strong>Designation:</strong> {employee.designation || "Developer"}</p>
+              <p><strong>Project:</strong> {employee.project || "--"}</p>
             </div>
           </div>
 
@@ -179,6 +179,7 @@ function EmployeeDashboard() {
         </div>
 
         <div className="right-col">
+          {/* Calendar */}
           <div className="card calendar-box small-calendar">
             <p className="calendar-title">Calendar</p>
             <div className="calendar-grid">
@@ -204,11 +205,7 @@ function EmployeeDashboard() {
 
                 if (isToday) className += " today";
 
-                return (
-                  <div key={d} className={className}>
-                    {dayNumber}
-                  </div>
-                );
+                return <div key={d} className={className}>{dayNumber}</div>;
               })}
             </div>
           </div>
@@ -219,23 +216,17 @@ function EmployeeDashboard() {
       <div className="dropdowns">
         <select value={project} onChange={(e) => setProject(e.target.value)}>
           <option value="">--Select Project--</option>
-          {projects.map((p) => (
-            <option key={p} value={p}>{p}</option>
-          ))}
+          {projects.map((p) => <option key={p} value={p}>{p}</option>)}
         </select>
 
         <select value={module} onChange={(e) => setModule(e.target.value)}>
           <option value="">--Select Module--</option>
-          {modules.map((m) => (
-            <option key={m} value={m}>{m}</option>
-          ))}
+          {modules.map((m) => <option key={m} value={m}>{m}</option>)}
         </select>
 
         <select value={submodule} onChange={(e) => setSubmodule(e.target.value)}>
           <option value="">--Select Submodule--</option>
-          {submodules.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
+          {submodules.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
 

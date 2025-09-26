@@ -39,6 +39,7 @@ export default function AdminLogin(){
   return (
     <>
    <Header currentUser={null} /> 
+<<<<<<< HEAD
     <div className="container">
       <div id="adminLogin" className="page active">
         <div className='header'>
@@ -59,12 +60,20 @@ export default function AdminLogin(){
         <div className='form-group'>
         <button className="btn" type="submit" disabled={!username || !password || loading}>{loading ? 'Logging in...' : 'Login as Admin'}</button>
         <button className="btn btn-secondary" type="button" onClick={()=>nav('/employee-login')} disabled={loading}>Employee Login</button>
+=======
+   
+    
+  
+       
+        <div className='form-group'>
+          <div className='btnform'>
+        <button className="btn" type="submit">Login as Admin</button>
+        <button className="btn btn-secondary" type="button" onClick={()=>nav('/employee-login')}>Employee Login</button>
+>>>>>>> 73d331d0be1b894eee85872e89902ab0658c9f77
         {err && <div style={{color:'red'}}>{err}</div>}
         </div>
         </div>
-      </form>
-    </div>
-    </div>
+      
     <Footer />
     </>
   );

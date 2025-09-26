@@ -1,7 +1,12 @@
 import AdminLogin from "./Pages/AdminLogin";
+<<<<<<< HEAD
 import AdminDashboard from "./Pages/AdminDashboard";
+=======
+import EmployeeLogin from "./Pages/EmployeeLogin";
+>>>>>>> 73d331d0be1b894eee85872e89902ab0658c9f77
 import EmployeeDashboard from "./Pages/EmployeeDashboard";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+
 
 function App() {
   return (
@@ -14,7 +19,9 @@ function App() {
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
 
         {/* Employee dashboard page */}
-        <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
+        
+        <Route path="/employee-login" element={<EmployeeLogin />} />
+        <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
       </Routes>
     </Router>
   );
